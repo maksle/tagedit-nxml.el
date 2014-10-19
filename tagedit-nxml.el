@@ -43,8 +43,8 @@
 
 
 (defadvice forward-list (around nxml-version (&optional n) activate)
-  "`forward-list' and `backward-list' list doesn't do anything
-useful in nxml mode and doesn't behave the same way as in sgml
+  "`forward-list' and `backward-list' list don't do anything
+useful in nxml mode and don't behave the same way as in sgml
 mode. It would be nice if this was overridable in tagedit-mode so
 that we don't have to use advice."
   (if (not (equal mode-name "nXML"))
@@ -63,8 +63,8 @@ that we don't have to use advice."
             (setq n (- n 1))))))))
 
 (defadvice backward-list (around nxml-version (&optional n) activate)
-  "`forward-list' and `backward-list' list doesn't do anything
-useful in nxml mode and doesn't behave the same way as in sgml
+  "`forward-list' and `backward-list' list don't do anything
+useful in nxml mode and don't behave the same way as in sgml
 mode. It would be nice if this was overridable in tagedit-mode so
 that we don't have to use advice."
   (if (not (equal mode-name "nXML"))
