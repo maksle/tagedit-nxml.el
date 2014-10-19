@@ -29,7 +29,7 @@
 ;; Experimental features don't work currently but some of them are html-mode
 ;; specific. There's no way currently to make
 ;; `tagedit-disable-experimental-features' buffer-local that I know of so we
-;; have to (try) to disable them manually. See the `tagedit-nxml-hook'.
+;; have to (try) to disable them manually. See `enable-tagedit-xml'.
 ;; 
 ;; Also, forward-list and backward-list had to be advised.
 
