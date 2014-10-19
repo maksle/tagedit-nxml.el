@@ -15,6 +15,6 @@ specific. There's no way currently to make
 `tagedit-disable-experimental-features' buffer-local that I know of so we have
 to (try) to disable them manually.
 
-Also, forward-list and backward-list had to be advised. Maybe tagedit mode will
-let us override them too?
+Also, forward-list and backward-list had to be advised. Maybe in the future
+tagedit-mode will let us override them also.
 
