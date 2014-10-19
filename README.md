@@ -18,3 +18,13 @@ to (try) to disable them manually.
 Also, forward-list and backward-list had to be advised. Maybe in the future
 tagedit-mode will let us override them also.
 
+To use it:
+```emacs
+(add-hook 'nxml-mode-hook
+  (lambda () 
+    (tagedit-mode)
+    (require 'tagedit-nxml)
+    (enable-tagedit-nxml))
+```
+
+

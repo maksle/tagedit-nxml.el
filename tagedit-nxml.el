@@ -31,7 +31,15 @@
 ;; `tagedit-disable-experimental-features' buffer-local that I know of so we
 ;; have to (try) to disable them manually. See the `tagedit-nxml-hook'.
 ;; 
-;; Also, forward-list and backward-list had to be advised. 
+;; Also, forward-list and backward-list had to be advised.
+
+;; To use it:
+;; 
+;; (add-hook 'nxml-mode-hook
+;;   (lambda () 
+;;     (tagedit-mode)
+;;     (require 'tagedit-nxml)
+;;     (enable-tagedit-nxml))
 
 
 (defadvice forward-list (around nxml-version (&optional n) activate)
@@ -151,9 +159,9 @@ sgml-get-context but not all."
          (te-nxml/get-context))))
 
 
-(defun tagedit-nxml-hook ()
+(defun enable-tagedit-nxml ()
   ;; Turn on tagedit mode
-  (tagedit-mode)
+  ;; (tagedit-mode)
 
   ;; Set our nxml-verions of the functions that are overridable without
   ;; defadvice
@@ -173,4 +181,5 @@ sgml-get-context but not all."
   (define-key tagedit-mode-map (kbd "<") nil) ; how do I make this not affect html-mode?
   (define-key tagedit-mode-map (kbd ">") nil)) ; how do I make this not affect html-mode?
 
-(add-hook 'nxml-mode-hook 'tagedit-nxml-hook)
+
+(provide 'tagedit-nxml)
