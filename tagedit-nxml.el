@@ -127,7 +127,8 @@ messing up the structure."
          (nxml-forward-element))
         ((memq xmltok-type '(start-tag))
          (goto-char xmltok-start)
-         (nxml-forward-element))
+         ;; hack to get editable regions to work
+         (ignore-errors (nxml-forward-element)))
         ((memq xmltok-type '(end-tag cdata-section comment processing-instruction))
          (goto-char xmltok-start)
          (xmltok-forward))
@@ -136,8 +137,10 @@ messing up the structure."
               (looking-at-p "]]>"))
          (forward-char 3))
         ((memq xmltok-type '(data space))
-         (xmltok-forward)
-         (te-nxml/skip-tag-forward))))
+         ;; (xmltok-forward)
+         ;; (te-nxml/skip-tag-forward)
+         (forward-list)
+         )))
 
 (defun te-nxml/get-context ()
   "Unlike te-sgml/get-context it doesn't return anything, but it
