@@ -24,14 +24,7 @@
 ;; defaut xml mode and would benefit from tagedit features, but it is not
 ;; derived from sgml-mode.
 
-;; Caveats:
-
-;; Experimental features don't work currently but some of them are html-mode
-;; specific. There's no way currently to make
-;; `tagedit-disable-experimental-features' buffer-local that I know of so we
-;; have to (try) to disable them manually. See `enable-tagedit-xml'.
-;; 
-;; Also, forward-list and backward-list had to be advised.
+;; Thanks to Magnar Sveen for the awesome tagedit package.
 
 ;; To use it:
 ;; 
@@ -42,13 +35,7 @@
 ;;     (enable-tagedit-nxml))
 
 
-(defadvice forward-list (around nxml-version (&optional n) activate)
-  "`forward-list' and `backward-list' list don't do anything
-useful in nxml mode and don't behave the same way as in sgml
-mode. It would be nice if this was overridable in tagedit-mode so
-that we don't have to use advice."
-  (if (not (equal mode-name "nXML"))
-      ad-do-it
+(defun te-nxml/forward-list (&optional n)
     (cl-flet 
         ((start-or-end-tag? () 
                             (nxml-token-before) 
@@ -60,41 +47,51 @@ that we don't have to use advice."
             (xmltok-forward)
             (while (not (start-or-end-tag?))
               (xmltok-forward))
-            (setq n (- n 1))))))))
+            (setq n (- n 1)))))))
 
-(defadvice backward-list (around nxml-version (&optional n) activate)
-  "`forward-list' and `backward-list' list don't do anything
-useful in nxml mode and don't behave the same way as in sgml
-mode. It would be nice if this was overridable in tagedit-mode so
-that we don't have to use advice."
-  (if (not (equal mode-name "nXML"))
-      ad-do-it
+(defun te-nxml/backward-list (&optional n)
     (let ((n (or n 1)))
       (if (< n 0)
           (forward-list (abs n))
         (while (> n 0)
-          (backward-sexp)
+          (te-nxml/backward-sexp)
           (unless (looking-at-p "<")
-            (backward-sexp))
-          (setq n (- n 1)))))))
+            (te-nxml/backward-sexp))
+          (setq n (- n 1))))))
 
-(defadvice te/select-attribute (around nxml-version () activate)
+(defun te-nxml/backward-sexp (&optional n)
+  "Allow user to have `nxml-sexp-element-flag' be non-nil if they
+ prefer but still have the backward-sexp behavior that tagedit
+ expects for tagedit functions."
+  (let ((nxml-sexp-element-flag nil))
+    (backward-sexp n)))
+
+(defun te-nxml/forward-sexp (&optional n)
+  "Allow user to have `nxml-sexp-element-flag' be non-nil if they
+ prefer but still have the forward-sexp behavior that tagedit
+ expects for tagedit functions."
+  (let ((nxml-sexp-element-flag nil))
+    (forward-sexp n)))
+
+(defun te-nxml/point-inside-string? ()
   "For some reason the syntax-ppss trick to check if inside a
-string doesn't work in nxml mode, but we have a real xml parser."
-  (if (not (equal mode-name "nXML"))
-      ad-do-it
-    (search-forward "\"")
+string doesn't work in nxml mode. 
+
+This returns the xmltok attribute if we are in an attribute string of the tag
+containing point. Otherwise it returns nil."
+  (save-excursion 
+    (forward-char 1)
     (nxml-token-before)
-    (save-excursion (goto-char xmltok-start) (xmltok-forward))
-    (let ((attr (find-if (lambda (att) 
-                           (and (< (xmltok-attribute-name-start att) (point))
-                                (>= (xmltok-attribute-value-end att) (- (point) 2)))) 
+    (goto-char xmltok-start) 
+    (xmltok-forward))
+  (let ((attr (find-if (lambda (att) 
+                           (and (<= (xmltok-attribute-value-start att) (point))
+                                (> (xmltok-attribute-value-end att) (point)))) 
                          xmltok-attributes)))
-      (goto-char (+ 1 (xmltok-attribute-value-end attr)))
-      (set-mark (point))
-      (goto-char (xmltok-attribute-name-start attr)))))
+    attr))
 
 (defun te-nxml/current-tag ()
+  "Return current tag alist that `te/current-tag-fn' expects."
   (save-excursion
     (te-nxml/get-context)
     (save-excursion
@@ -163,26 +160,14 @@ sgml-get-context but not all."
 
 
 (defun enable-tagedit-nxml ()
-  ;; Turn on tagedit mode
-  ;; (tagedit-mode)
-
-  ;; Set our nxml-verions of the functions that are overridable without
-  ;; defadvice
-  (set (make-local-variable 'te/skip-tag-forward-fn)
-       'te-nxml/skip-tag-forward)
-  (set (make-local-variable 'te/current-tag-fn)
-       'te-nxml/current-tag)
-  
-  ;; this is the default value, but is required so that backward-sexp does what
-  ;; tagedit expects.
-  (setq nxml-sexp-element-flag nil) 
-
-  ;; There's no way currently to make `tagedit-disable-experimental-features'
-  ;; buffer-local that I know of so we have to disable them manually.
-  (set (make-local-variable 'tagedit-experimental-features-on?) nil)
-  (te/turn-off-tag-editing)
-  (define-key tagedit-mode-map (kbd "<") nil) ; how do I make this not affect html-mode?
-  (define-key tagedit-mode-map (kbd ">") nil)) ; how do I make this not affect html-mode?
+  ;; Set our nxml-verions of the functions 
+  (set (make-local-variable 'te/skip-tag-forward-fn) 'te-nxml/skip-tag-forward)
+  (set (make-local-variable 'te/current-tag-fn) 'te-nxml/current-tag)
+  (set (make-local-variable 'te/forward-list-fn) 'te-nxml/forward-list)
+  (set (make-local-variable 'te/backward-list-fn) 'te-nxml/backward-list)
+  (set (make-local-variable 'te/forward-sexp-fn) 'te-nxml/forward-sexp)
+  (set (make-local-variable 'te/backward-sexp-fn) 'te-nxml/backward-sexp)
+  (set (make-local-variable 'te/point-inside-string-fn) 'te-nxml/point-inside-string?))
 
 
 (provide 'tagedit-nxml)
