@@ -8,15 +8,9 @@ and would benefit from tagedit features, but it is not derived from sgml-mode.
 This creates nxml versions of the sgml functions that tagedit relies upon or
 lets you override.
 
+
 Thanks to Magnar Sveen for the awesome tagedit package.
 
-To use it:
-
-(add-hook 'nxml-mode-hook
-  (lambda () 
-    (tagedit-mode)
-    (require 'tagedit-nxml)
-    (enable-tagedit-nxml))
 
 To use it:
 ```emacs
