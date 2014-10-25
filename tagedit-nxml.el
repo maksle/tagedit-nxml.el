@@ -86,7 +86,7 @@ containing point. Otherwise it returns nil."
     (xmltok-forward))
   (let ((attr (find-if (lambda (att) 
                            (and (<= (xmltok-attribute-value-start att) (point))
-                                (> (xmltok-attribute-value-end att) (point)))) 
+                                (>= (xmltok-attribute-value-end att) (point)))) 
                          xmltok-attributes)))
     attr))
 
