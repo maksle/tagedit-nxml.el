@@ -52,7 +52,7 @@
 (defun te-nxml/backward-list (&optional n)
     (let ((n (or n 1)))
       (if (< n 0)
-          (forward-list (abs n))
+          (te-nxml/forward-list (abs n))
         (while (> n 0)
           (te-nxml/backward-sexp)
           (unless (looking-at-p "<")
@@ -111,10 +111,10 @@ containing point. Otherwise it returns nil."
         (:end . ,end)))))
 
 (defun te-nxml/skip-tag-forward ()
-  "Equivalent in behavior to sgml-skip-tag-forward, but unlike
-the sgml version it also handles comments correctly as tags which
-is nice because it allows us to slurp/barf/etc them too without
-messing up the structure."
+  "Equivalent in behavior to sgml-skip-tag-forward, but it also
+handles comments as tags which is nice because it
+allows us to slurp/barf/etc them too without messing up the
+structure."
   (interactive)
   (save-excursion
     (ignore-errors (forward-char 1))
@@ -124,8 +124,12 @@ messing up the structure."
          (nxml-forward-element))
         ((memq xmltok-type '(start-tag))
          (goto-char xmltok-start)
-         ;; hack to get editable regions to work
-         (ignore-errors (nxml-forward-element)))
+         ;; to get editable regions to work which make the nxml momentarily invalid
+         ;; or when trying to edit an unclosed start tag
+         (let ((start xmltok-start))
+           (condition-case nil
+               (nxml-forward-element)
+             (error (goto-char start) (te-nxml/forward-list)))))
         ((memq xmltok-type '(end-tag cdata-section comment processing-instruction))
          (goto-char xmltok-start)
          (xmltok-forward))
@@ -136,7 +140,7 @@ messing up the structure."
         ((memq xmltok-type '(data space))
          ;; (xmltok-forward)
          ;; (te-nxml/skip-tag-forward)
-         (forward-list)
+         (te-nxml/forward-list)
          )))
 
 (defun te-nxml/get-context ()
